@@ -310,40 +310,90 @@
       });
     }
 
-    // Record confirm
-    var timeEditToggle = app.querySelector('#time-edit-toggle');
-    var timeEditBlock = app.querySelector('#time-edit-block');
-    var timeDisplay = app.querySelector('#time-display');
+    // Record confirm のロジック
+    var dtEditToggle = app.querySelector('#datetime-edit-toggle');
+    var dtEditBlock = app.querySelector('#datetime-edit-block');
+    var dtDisplay = app.querySelector('#datetime-display');
+    var dateInput = app.querySelector('#record-date-input');
     var timeInput = app.querySelector('#record-time-input');
-    if (timeEditToggle && timeEditBlock && timeDisplay) {
-      timeEditToggle.addEventListener('click', function () {
-        var isOpen = timeEditBlock.classList.toggle('hidden');
-        timeEditToggle.innerHTML = isOpen ? '閉じる' : (icons.clock + ' 時刻を修正');
-        timeDisplay.classList.toggle('hidden', isOpen);
+    var dtModifiedSpan = app.querySelector('#datetime-modified-span');
+    var dispDate = app.querySelector('#display-date');
+    var dispTime = app.querySelector('#display-time');
+
+    if (dtEditToggle && dtEditBlock && dtDisplay && dateInput && timeInput) {
+      // 初期値セット
+      dateInput.value = dtDisplay.getAttribute('data-original-date');
+      timeInput.value = dtDisplay.getAttribute('data-original-time');
+
+      dtEditToggle.addEventListener('click', function () {
+        var isHidden = dtEditBlock.classList.contains('hidden');
+        if (isHidden) {
+          dtEditBlock.classList.remove('hidden');
+          dtEditToggle.innerHTML = '閉じる';
+          dispDate.classList.add('hidden');
+          dispTime.classList.add('hidden');
+        } else {
+          dtEditBlock.classList.add('hidden');
+          dtEditToggle.innerHTML = icons.clock + ' 日時を修正';
+          dispDate.classList.remove('hidden');
+          dispTime.classList.remove('hidden');
+        }
       });
-    }
-    if (timeInput) {
-      timeInput.addEventListener('change', function () {
-        var modifiedSpan = app.querySelector('#time-modified-span');
-        if (modifiedSpan) modifiedSpan.classList.remove('hidden');
-        var timeDisplay = app.querySelector('#time-display');
-        if (timeDisplay) timeDisplay.textContent = timeInput.value + ' ';
-      });
+
+      function updateDateTime() {
+        var origDate = dtDisplay.getAttribute('data-original-date');
+        var origTime = dtDisplay.getAttribute('data-original-time');
+        var newDate = dateInput.value;
+        var newTime = timeInput.value;
+        
+        // どちらかが変わっていれば「修正済」を表示
+        if (newDate !== origDate || newTime !== origTime) {
+          if (dtModifiedSpan) dtModifiedSpan.classList.remove('hidden');
+        } else {
+          if (dtModifiedSpan) dtModifiedSpan.classList.add('hidden');
+        }
+        
+        // 画面表示用のテキスト更新
+        var dObj = new Date(newDate);
+        if (!isNaN(dObj.getTime())) {
+          dispDate.textContent = dObj.getFullYear() + '年' + (dObj.getMonth() + 1) + '月' + dObj.getDate() + '日 ';
+        }
+        dispTime.textContent = newTime;
+      }
+
+      dateInput.addEventListener('change', updateDateTime);
+      timeInput.addEventListener('change', updateDateTime);
     }
 
     var confirmSaveBtn = app.querySelector('#confirm-save');
     if (confirmSaveBtn) {
       confirmSaveBtn.addEventListener('click', function () {
         var evalVal = routeState.evaluation || 'good';
+        
+        var dateInputEl = app.querySelector('#record-date-input');
         var timeInputEl = app.querySelector('#record-time-input');
-        var time = timeInputEl ? timeInputEl.value : (function () { var n = new Date(); return ('' + n.getHours()).padStart(2, '0') + ':' + ('' + n.getMinutes()).padStart(2, '0'); })();
-        var modSpan = app.querySelector('#time-modified-span');
+        
+        var finalDateStr = dateInputEl ? dateInputEl.value : '';
+        var finalTimeStr = timeInputEl ? timeInputEl.value : '';
+        
+        var recordDate = new Date();
+        if (finalDateStr) {
+           var parts = finalDateStr.split('-');
+           if(parts.length === 3) {
+             recordDate.setFullYear(parseInt(parts[0], 10));
+             recordDate.setMonth(parseInt(parts[1], 10) - 1);
+             recordDate.setDate(parseInt(parts[2], 10));
+           }
+        }
+        
+        var modSpan = app.querySelector('#datetime-modified-span');
         var modified = modSpan && !modSpan.classList.contains('hidden');
+        
         addRecord({
           id: String(Date.now()),
-          date: new Date(),
+          date: recordDate,
           evaluation: evalVal,
-          time: time,
+          time: finalTimeStr || '00:00',
           isTimeModified: modified
         });
         navigateTo('game', { newRecord: '1' });
@@ -353,8 +403,20 @@
     // Calendar
     var prevMonth = app.querySelector('#prev-month');
     var nextMonth = app.querySelector('#next-month');
-    if (prevMonth) prevMonth.addEventListener('click', function () { state.calendarMonth = (state.calendarMonth || 1) - 1; render(); });
-    if (nextMonth) nextMonth.addEventListener('click', function () { state.calendarMonth = (state.calendarMonth || 1) + 1; render(); });
+    
+    // ▼不具合修正：0(1月)がfalseと判定されるバグを防ぐため、存在チェックのみを行う
+    if (prevMonth) {
+      prevMonth.addEventListener('click', function () { 
+        if (typeof state.calendarMonth !== 'undefined') state.calendarMonth--;
+        render(); 
+      });
+    }
+    if (nextMonth) {
+      nextMonth.addEventListener('click', function () { 
+        if (typeof state.calendarMonth !== 'undefined') state.calendarMonth++;
+        render(); 
+      });
+    }
 
     app.querySelectorAll('[data-record-id]').forEach(function (el) {
       el.addEventListener('click', function () {
@@ -436,7 +498,7 @@
     return { good: '#4A90E2', normal: '#FFD700', bad: '#FF6B6B', peeled: '#4CAF50' }[e] || '#666';
   }
   function evalLabel(e) {
-    return { good: '完全脱色', normal: '装着中', bad: '未実施', peeled: 'シール剥がれ' }[e] || '';
+    return { good: '完全脱色', normal: '不十分', bad: 'ほぼ脱色なし', peeled: 'シール剥がれ' }[e] || '';
   }
 
   function renderTop() {
@@ -556,8 +618,10 @@
   }
 
   function renderCalendar() {
-    var year = 2026;
-    var month = (state.calendarMonth !== undefined) ? state.calendarMonth : 1;
+    var today = new Date(); 
+    var year = state.calendarYear || today.getFullYear();
+    var month = (state.calendarMonth !== undefined) ? state.calendarMonth : today.getMonth();
+    
     if (month < 0) { year--; month = 11; }
     if (month > 11) { year++; month = 0; }
     state.calendarMonth = month;
@@ -565,7 +629,6 @@
 
     var daysInMonth = new Date(year, month + 1, 0).getDate();
     var firstDay = new Date(year, month, 1).getDay();
-    var today = new Date(2026, 1, 17);
 
     var daysHtml = '';
     for (var i = 0; i < firstDay; i++) daysHtml += '<div class="day-cell empty"></div>';
@@ -588,9 +651,10 @@
       modalHtml = '<div id="modal-overlay" class="modal-overlay">' +
         '<div class="modal-panel">' +
           '<div class="modal-header"><h3>記録詳細</h3><button type="button" id="modal-close" class="modal-close">' + icons.x + '</button></div>' +
+          '<div class="modal-image-preview">' + icons.camera + '<span>撮影イメージ</span></div>' +
           '<div class="info-block"><p class="label">日付</p><p class="value">' + selected.date.getFullYear() + '年' + (selected.date.getMonth()+1) + '月' + selected.date.getDate() + '日</p></div>' +
           '<div class="info-block"><p class="label">評価</p><div class="value-row"><span class="dot" style="background:' + evalColor(selected.evaluation) + '"></span><span>' + evalLabel(selected.evaluation) + '</span></div></div>' +
-          '<div class="info-block"><p class="label">記録時刻</p><div class="value-row">' + icons.clock + ' <span>' + selected.time + (selected.isTimeModified ? ' <span class="text-muted">(修正済)</span>' : '') + '</span></div></div>' +
+          '<div class="info-block"><p class="label">記録時刻</p><div class="value-row">' + icons.clock + ' <span>' + selected.time + (selected.isTimeModified ? ' <span class="text-destructive" style="font-size:0.8rem; margin-left:0.25rem;">(修正済)</span>' : '') + '</span></div></div>' +
         '</div></div>';
     }
 
@@ -613,8 +677,8 @@
         '<div class="days-grid">' + daysHtml + '</div>' +
         '<div class="legend">' +
           '<div class="legend-item"><span class="dot good"></span>完全脱色</div>' +
-          '<div class="legend-item"><span class="dot normal"></span>装着中</div>' +
-          '<div class="legend-item"><span class="dot bad"></span>未実施</div>' +
+          '<div class="legend-item"><span class="dot normal"></span>不十分</div>' +
+          '<div class="legend-item"><span class="dot bad"></span>ほぼ脱色なし</div>' +
           '<div class="legend-item"><span class="dot peeled"></span>シール剥がれ</div>' +
         '</div>' +
       '</div>' + modalHtml +
@@ -649,9 +713,14 @@
   function renderRecordConfirm(evaluation) {
     evaluation = evaluation || 'good';
     var now = new Date();
-    var timeStr = ('' + now.getHours()).padStart(2, '0') + ':' + ('' + now.getMinutes()).padStart(2, '0');
-    var evalInfos = { good: { color: '#4A90E2', label: '完全脱色', icon: '✨' }, normal: { color: '#FFD700', label: '装着中', icon: '⏱️' }, peeled: { color: '#4CAF50', label: 'シール剥がれ', icon: '⚠️' }, bad: { color: '#FF6B6B', label: '未実施', icon: '❌' } };
+    // 日付と時刻の初期文字列を生成
+    var dateStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+    var timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+    var displayDateStr = now.getFullYear() + '年' + (now.getMonth() + 1) + '月' + now.getDate() + '日 ';
+
+    var evalInfos = { good: { color: '#4A90E2', label: '完全脱色', icon: '✨' }, normal: { color: '#FFD700', label: '不十分', icon: '⏱️' }, peeled: { color: '#4CAF50', label: 'シール剥がれ', icon: '⚠️' }, bad: { color: '#FF6B6B', label: 'ほぼ脱色なし', icon: '❌' } };
     var info = evalInfos[evaluation] || evalInfos.good;
+    
     return '<div class="screen">' +
       '<header class="header">' +
         '<button type="button" class="btn-icon" data-nav="record-qr">' + icons.arrowLeft + '</button>' +
@@ -662,12 +731,23 @@
         '<div class="eval-card"><p class="label">評価</p><div class="value-row">' +
           '<span class="dot" style="width:1.5rem;height:1.5rem;border-radius:50%;background:' + info.color + '"></span>' +
           '<span class="icon-emoji">' + info.icon + '</span><span class="text">' + info.label + '</span></div></div>' +
-        '<div class="eval-card"><p class="label">撮影日</p><p class="value">' + now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日</p></div>' +
+        
         '<div class="eval-card">' +
-          '<div class="time-edit-row"><p class="label" style="margin:0">撮影時刻</p><button type="button" class="link" id="time-edit-toggle">' + icons.clock + ' 時刻を修正</button></div>' +
-          '<div id="time-edit-block" class="hidden"><input type="time" id="record-time-input" value="' + timeStr + '"/></div>' +
-          '<p id="time-display" class="value">' + timeStr + ' <span id="time-modified-span" class="hidden">(修正済)</span></p>' +
+          '<div class="time-edit-row">' +
+            '<p class="label" style="margin:0">撮影日時</p>' +
+            '<button type="button" class="link" id="datetime-edit-toggle">' + icons.clock + ' 日時を修正</button>' +
+          '</div>' +
+          '<div id="datetime-edit-block" class="hidden" style="margin-bottom:0.75rem; display:flex; gap:0.5rem;">' +
+            '<input type="date" id="record-date-input" style="flex:1;" />' +
+            '<input type="time" id="record-time-input" style="width:auto;" />' +
+          '</div>' +
+          '<p id="datetime-display" class="value" data-original-date="' + dateStr + '" data-original-time="' + timeStr + '">' +
+            '<span id="display-date">' + displayDateStr + '</span>' +
+            '<span id="display-time">' + timeStr + '</span>' +
+            '<span id="datetime-modified-span" class="hidden text-destructive" style="font-size:0.8rem; margin-left:0.5rem;">(修正済)</span>' +
+          '</p>' +
         '</div>' +
+        
         (evaluation === 'peeled' ? '<div class="peeled-note"><p><strong>シール剥がれについて</strong><br/>次回来院時に歯科医師にお伝えください。新しいシールを貼り直す必要があります。</p></div>' : '') +
       '</div>' +
       '<div class="confirm-actions">' +
