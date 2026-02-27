@@ -236,6 +236,35 @@ input[type="time"] {
   color: var(--foreground);
 }
 
+/* プルダウンのスタイル */
+.date-select-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.date-select-group select {
+  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.75rem 1rem;
+  background: var(--input-background);
+  border: 2px solid var(--pastel-orange);
+  border-radius: 0.75rem;
+  font-family: var(--font-family);
+  font-size: 1rem;
+  -webkit-appearance: none;
+  appearance: none;
+  line-height: 1.5;
+  min-height: 3.25rem;
+  color: var(--foreground);
+  /* プルダウンの矢印アイコンを設定 */
+  background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23666666%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E');
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  padding-right: 2.25rem;
+}
+
 /* Top */
 .top-screen {
   min-height: 100vh;

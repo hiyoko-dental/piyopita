@@ -235,15 +235,22 @@
         var c = state.clinicInfo || defaultClinicInfo;
         var name = (app.querySelector('#reg-name') || {}).value.trim();
         var nickname = (app.querySelector('#reg-nickname') || {}).value.trim();
-        var birthDate = (app.querySelector('#reg-birth') || {}).value;
-        if (!name || !birthDate) {
+        
+        var year = (app.querySelector('#reg-birth-year') || {}).value;
+        var month = (app.querySelector('#reg-birth-month') || {}).value;
+        var day = (app.querySelector('#reg-birth-day') || {}).value;
+        
+        if (!name || !year || !month || !day) {
           alert('患者名と生年月日を入力してください');
           return;
         }
+        
+        var birthDateStr = year + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+
         setPatientInfo({
           name: name,
           nickname: nickname || name,
-          birthDate: new Date(birthDate),
+          birthDate: new Date(birthDateStr),
           clinicName: c.clinicName,
           doctorName: c.doctorName
         });
@@ -594,6 +601,24 @@
 
   function renderRegistration() {
     var c = state.clinicInfo || defaultClinicInfo;
+    
+    // 年・月・日のオプションを生成
+    var currentYear = new Date().getFullYear();
+    var yearOptions = '<option value="">年</option>';
+    for (var y = currentYear; y >= 1900; y--) {
+      yearOptions += '<option value="' + y + '">' + y + '年</option>';
+    }
+    
+    var monthOptions = '<option value="">月</option>';
+    for (var m = 1; m <= 12; m++) {
+      monthOptions += '<option value="' + m + '">' + m + '月</option>';
+    }
+    
+    var dayOptions = '<option value="">日</option>';
+    for (var d = 1; d <= 31; d++) {
+      dayOptions += '<option value="' + d + '">' + d + '日</option>';
+    }
+
     return '<div class="screen">' +
       '<header class="header">' +
         '<button type="button" class="btn-icon" data-back>' + icons.arrowLeft + '</button>' +
@@ -610,7 +635,14 @@
         '</div>' +
         '<div class="form-group"><label>患者名 <span class="required">*</span></label><input type="text" id="reg-name" placeholder="山田 太郎" required/></div>' +
         '<div class="form-group"><label>ニックネーム <span class="optional">(任意)</span></label><input type="text" id="reg-nickname" placeholder="たろう / もっちゃん など"/><p class="hint">アプリ内で表示される名前です</p></div>' +
-        '<div class="form-group"><label>生年月日 <span class="required">*</span></label><input type="date" id="reg-birth" required/></div>' +
+        '<div class="form-group">' +
+          '<label>生年月日 <span class="required">*</span></label>' +
+          '<div class="date-select-group">' +
+            '<select id="reg-birth-year" required>' + yearOptions + '</select>' +
+            '<select id="reg-birth-month" required>' + monthOptions + '</select>' +
+            '<select id="reg-birth-day" required>' + dayOptions + '</select>' +
+          '</div>' +
+        '</div>' +
         '<div class="note-box"><p><strong>※ 登録後の変更について</strong><br/>登録後、患者名と生年月日は変更できません。ニックネームは設定画面から変更可能です。</p></div>' +
       '</form>' +
       '<div class="reg-footer"><button type="submit" form="registration-form" class="btn-primary">歯科医師と連携</button></div>' +
