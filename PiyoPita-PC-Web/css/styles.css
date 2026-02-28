@@ -747,7 +747,7 @@ body {
 .alert-row .days.orange { background: #fed7aa; color: var(--orange-800); }
 .alert-row .days.yellow { background: #fef08a; color: #854d0e; }
 
-/* Patient Search */
+/* Patient Search & Table Unification */
 .search-card .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr auto auto;
@@ -801,62 +801,53 @@ body {
   padding-left: 2.5rem;
 }
 
-.table-wrap {
-  background: var(--card);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
-  overflow: hidden;
-}
-
-.table-wrap table {
+/* 統一テーブルクラス */
+.data-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.875rem;
   text-align: left;
 }
 
-.table-wrap thead {
+.data-table thead th {
   background: var(--muted-bg);
-  border-bottom: 1px solid var(--border);
-}
-
-.table-wrap th {
   padding: 1rem;
   font-weight: 600;
   color: var(--fg);
+  border-bottom: 1px solid var(--border);
 }
 
-.table-wrap td {
+.data-table tbody td {
   padding: 1rem;
   color: var(--muted);
   border-bottom: 1px solid var(--border-light);
 }
 
-.table-wrap tbody tr {
+.data-table tbody tr.interactive {
   cursor: pointer;
   transition: background 0.2s;
 }
 
-.table-wrap tbody tr:hover {
+.data-table tbody tr.interactive:hover {
   background: rgba(239, 246, 255, 0.5);
 }
 
-.table-wrap .chart-no {
+.data-table .chart-no {
   font-family: monospace;
   color: var(--muted);
 }
 
-.table-wrap .patient-name {
+.data-table .patient-name {
   font-weight: 700;
   color: var(--fg);
 }
 
-.table-wrap .patient-kana {
+.data-table .patient-kana {
   font-size: 0.75rem;
   color: var(--muted);
 }
 
-.table-wrap .device-tag {
+.data-table .device-tag {
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.5rem;
@@ -868,12 +859,59 @@ body {
   border: 1px solid rgba(0,0,0,0.06);
 }
 
-.table-wrap .status-badge {
+.data-table .status-badge {
   display: inline-flex;
   padding: 0.25rem 0.5rem;
   border-radius: var(--radius);
   font-size: 0.75rem;
   font-weight: 500;
+}
+
+.data-table .badge {
+  display: inline-flex;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.data-table .badge.active {
+  background: var(--green-50);
+  color: var(--green);
+}
+
+.data-table .badge.inactive {
+  background: var(--muted-bg);
+  color: var(--muted);
+}
+
+.data-table .actions {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: flex-end;
+}
+
+.data-table .actions button {
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.data-table .actions button:hover {
+  background: var(--blue-50);
+  color: var(--blue);
+}
+
+.data-table .actions button.danger:hover {
+  background: var(--red-50);
+  color: var(--red);
 }
 
 .status-badge.good { background: var(--green-50); color: var(--green); border: 1px solid rgba(22, 163, 74, 0.2); }
@@ -1395,21 +1433,6 @@ body {
   color: var(--fg);
 }
 
-.chat-header .user-info .online {
-  font-size: 0.75rem;
-  color: var(--green);
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.chat-header .user-info .online .dot {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: var(--green);
-}
-
 .chat-header .actions {
   display: flex;
   gap: 0.5rem;
@@ -1442,13 +1465,19 @@ body {
 
 .chat-msg {
   display: flex;
+  flex-direction: column;
   max-width: 80%;
   margin-bottom: 1rem;
 }
 
 .chat-msg.doctor {
   margin-left: auto;
-  flex-direction: row-reverse;
+  align-items: flex-end;
+}
+
+.chat-msg.patient {
+  margin-right: auto;
+  align-items: flex-start;
 }
 
 .chat-msg .bubble {
@@ -1461,25 +1490,20 @@ body {
 .chat-msg .bubble.doctor {
   background: var(--blue);
   color: white;
-  border-radius: 1rem 1rem 0 1rem;
+  border-bottom-right-radius: 0;
 }
 
 .chat-msg .bubble.patient {
   background: var(--card);
   color: var(--fg);
   border: 1px solid var(--border-light);
-  border-radius: 1rem 1rem 1rem 0;
+  border-bottom-left-radius: 0;
 }
 
 .chat-msg .time {
   font-size: 0.75rem;
   color: var(--muted);
-  align-self: flex-end;
-  margin: 0 0.5rem 0.25rem 0;
-}
-
-.chat-msg.doctor .time {
-  margin: 0 0 0.25rem 0.5rem;
+  margin-top: 0.25rem;
 }
 
 .chat-input-wrap {
@@ -1706,71 +1730,6 @@ body {
   transform: translateX(1.25rem);
 }
 
-.staff-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.875rem;
-}
-
-.staff-table th,
-.staff-table td {
-  padding: 0.75rem 1rem;
-  text-align: left;
-  border-bottom: 1px solid var(--border-light);
-}
-
-.staff-table th {
-  font-weight: 600;
-  color: var(--fg);
-}
-
-.staff-table .badge {
-  display: inline-flex;
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--radius);
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.staff-table .badge.active {
-  background: var(--green-50);
-  color: var(--green);
-}
-
-.staff-table .badge.inactive {
-  background: var(--muted-bg);
-  color: var(--muted);
-}
-
-.staff-table .actions {
-  display: flex;
-  gap: 0.25rem;
-  justify-content: flex-end;
-}
-
-.staff-table .actions button {
-  width: 2rem;
-  height: 2rem;
-  border: none;
-  background: none;
-  border-radius: var(--radius);
-  cursor: pointer;
-  color: var(--muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.staff-table .actions button:hover {
-  background: var(--blue-50);
-  color: var(--blue);
-}
-
-.staff-table .actions button.danger:hover {
-  background: var(--red-50);
-  color: var(--red);
-}
-
 /* QR Modal */
 .qr-modal-body {
   padding: 1.5rem;
@@ -1821,3 +1780,13 @@ body {
   background: #1d4ed8;
 }
 
+/* --- 追加: 患者側と統一したカレンダーの色 --- */
+.day-dot.good { background: #4A90E2; }
+.day-dot.normal { background: #FFD700; }
+.day-dot.bad { background: #FF6B6B; }
+.day-dot.peeled { background: #4CAF50; }
+
+.dot.good { background: #4A90E2; }
+.dot.normal { background: #FFD700; }
+.dot.bad { background: #FF6B6B; }
+.dot.peeled { background: #4CAF50; }

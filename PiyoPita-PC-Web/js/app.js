@@ -1,15 +1,39 @@
 (function () {
   'use strict';
 
-  var AUTH_KEY = 'isAuthenticated';
+  // 認証状態をメモリ上で管理する（ページを開くたびに初期化されるため、必ずログイン画面から始まります）
+  var isAuth = false;
+
+  // --- LocalStorage Sync for Mobile & PC ---
+  var lsSync = {
+    getRecords: function() {
+      return JSON.parse(localStorage.getItem('piyopita_records') || '[]');
+    },
+    getMessages: function() {
+      var msgs = localStorage.getItem('piyopita_messages');
+      if (!msgs) {
+        msgs = [{ id: 1, sender: 'doctor', text: 'こんにちは。装置の調子はいかがですか？', time: '14:00' }];
+        localStorage.setItem('piyopita_messages', JSON.stringify(msgs));
+        return msgs;
+      }
+      return JSON.parse(msgs);
+    },
+    saveMessages: function(msgs) {
+      localStorage.setItem('piyopita_messages', JSON.stringify(msgs));
+    }
+  };
+
+  // モック用の簡易通知関数
+  window.showMockToast = function(msg) {
+    alert(msg);
+  };
 
   function isAuthenticated() {
-    return sessionStorage.getItem(AUTH_KEY) === 'true';
+    return isAuth;
   }
 
   function setAuthenticated(value) {
-    if (value) sessionStorage.setItem(AUTH_KEY, 'true');
-    else sessionStorage.removeItem(AUTH_KEY);
+    isAuth = value;
   }
 
   function getHashPath() {
@@ -30,63 +54,52 @@
     window.location.hash = path || '/';
   }
 
-  // Mock data
+  // --- 統合・刷新されたモックデータ ---
+  var mockPatients = [
+    { id: '1', lastName: '山田', firstName: '太郎', kana: 'やまだ たろう', age: 8, device: 'インビザライン', chartNo: 'C00101' },
+    { id: '2', lastName: '鈴木', firstName: '結衣', kana: 'すずき ゆい', age: 10, device: '拡大床', chartNo: 'C00102' },
+    { id: '3', lastName: '佐藤', firstName: '大翔', kana: 'さとう ひろと', age: 7, device: 'プレオルソ', chartNo: 'C00103' },
+    { id: '4', lastName: '高橋', firstName: '陽菜', kana: 'たかはし ひな', age: 9, device: 'マイオブレース', chartNo: 'C00104' },
+    { id: '5', lastName: '伊藤', firstName: '湊', kana: 'いとう みなと', age: 11, device: '拡大床', chartNo: 'C00105' },
+    { id: '6', lastName: '渡辺', firstName: '莉子', kana: 'わたなべ りこ', age: 8, device: 'インビザライン', chartNo: 'C00106' },
+    { id: '7', lastName: '山本', firstName: '悠真', kana: 'やまもと ゆうま', age: 6, device: 'ムーシールド', chartNo: 'C00107' },
+    { id: '8', lastName: '中村', firstName: '紬', kana: 'なかむら つむぎ', age: 7, device: 'インビザライン', chartNo: 'C00108' },
+    { id: '9', lastName: '小林', firstName: '蒼', kana: 'こばやし あお', age: 9, device: 'プレオルソ', chartNo: 'C00109' },
+    { id: '10', lastName: '加藤', firstName: '凛', kana: 'かとう りん', age: 8, device: '拡大床', chartNo: 'C00110' }
+  ];
+
   var timelineEvents = [
-    { id: 1, type: 'achievement', date: '2025/12/31', time: '20:15', content: '長谷川元洋くんが本日の装置装着時間を達成しました', patientId: '1', isNew: true },
-    { id: 2, type: 'message', date: '2025/12/30', time: '14:30', content: '長谷川太郎くんからメッセージを受信しました', patientId: '2', isNew: true },
-    { id: 3, type: 'registration', date: '2025/12/28', time: '09:45', content: '堀伊吹さんが新規登録されました', patientId: '3', isNew: false },
-    { id: 4, type: 'achievement', date: '2025/12/27', time: '19:20', content: '山田花子ちゃんが3日連続で目標を達成しました！', patientId: '4', isNew: false },
-    { id: 5, type: 'message', date: '2025/12/26', time: '11:00', content: '鈴木一郎くんから装置の不具合に関する相談があります', patientId: '5', isNew: false }
+    { id: 1, type: 'achievement', date: '2026/02/20', time: '20:15', content: '山田太郎くんが本日の装着記録を行いました', patientId: '1', isNew: true },
+    { id: 2, type: 'message', date: '2026/02/20', time: '14:30', content: '鈴木結衣ちゃんからメッセージを受信しました', patientId: '2', isNew: true },
+    { id: 3, type: 'registration', date: '2026/02/19', time: '09:45', content: '佐藤大翔くんが新規登録されました', patientId: '3', isNew: false },
+    { id: 4, type: 'message', date: '2026/02/17', time: '11:00', content: '伊藤湊くんから装置の不具合に関する相談があります', patientId: '5', isNew: false }
   ];
 
   var alertPatients = {
-    red: [{ id: '6', name: '佐藤 健太', days: 5, last: '2/16' }],
-    orange: [{ id: '7', name: '高橋 美咲', days: 3, last: '2/18' }],
-    yellow: [{ id: '8', name: '山本 陸', days: 2, last: '2/19' }, { id: '9', name: '中村 陽菜', days: 2, last: '2/19' }, { id: '10', name: '小林 翔太', days: 2, last: '2/19' }]
+    red: [{ id: '6', name: '渡辺 莉子', days: 5, last: '2/16' }],
+    orange: [{ id: '7', name: '山本 悠真', days: 3, last: '2/18' }],
+    yellow: [{ id: '8', name: '中村 紬', days: 2, last: '2/19' }, { id: '9', name: '小林 蒼', days: 2, last: '2/19' }, { id: '10', name: '加藤 凛', days: 2, last: '2/19' }]
   };
 
-  var mockPatients = [
-    { id: '1', lastName: '長谷川', firstName: '元洋', age: 8, device: 'インビザライン', chartNo: 'C00101', status: '良好' },
-    { id: '2', lastName: '長谷川', firstName: '太郎', age: 10, device: '拡大床', chartNo: 'C00102', status: '注意' },
-    { id: '3', lastName: '堀', firstName: '伊吹', age: 7, device: 'プレオルソ', chartNo: 'C00103', status: '新規' },
-    { id: '4', lastName: '山田', firstName: '花子', age: 9, device: 'マイオブレース', chartNo: 'C00104', status: '良好' },
-    { id: '5', lastName: '佐藤', firstName: '健太', age: 11, device: '拡大床', chartNo: 'C00105', status: '警告' },
-    { id: '6', lastName: '高橋', firstName: '美咲', age: 8, device: 'インビザライン', chartNo: 'C00106', status: '注意' },
-    { id: '7', lastName: '伊藤', firstName: '翼', age: 6, device: 'ムーシールド', chartNo: 'C00107', status: '良好' }
-  ];
-
-  var chartData = [
-    { name: '1月', rate: 85 },
-    { name: '2月', rate: 92 },
-    { name: '3月', rate: 78 },
-    { name: '4月', rate: 95 },
-    { name: '5月', rate: 88 },
-    { name: '6月', rate: 90 }
-  ];
-
-  var calendarDays = [];
-  for (var i = 1; i <= 28; i++) {
-    var r = Math.random();
-    calendarDays.push({
-      day: i,
-      date: '2026-02-' + (i < 10 ? '0' + i : i),
-      status: r > 0.8 ? 'blue' : r > 0.6 ? 'green' : r > 0.3 ? 'yellow' : 'red'
-    });
-  }
-
   var mockContacts = [
-    { id: '1', name: '長谷川 太郎', lastMessage: 'ありがとうございました！', time: '14:30', unread: 2, avatar: 'HT' },
-    { id: '2', name: '佐藤 健太', lastMessage: '装置が少し痛いです...', time: '昨日', unread: 0, avatar: 'SK' },
-    { id: '3', name: '鈴木 一郎', lastMessage: '次回の予約について', time: '2日前', unread: 0, avatar: 'SI' },
-    { id: '4', name: '田中 美咲', lastMessage: '写真送りました', time: '1週間前', unread: 0, avatar: 'TM' }
+    { id: '1', name: '山田 太郎', lastMessage: '', time: '', unread: 0, avatar: 'TR' },
+    { id: '2', name: '鈴木 結衣', lastMessage: '', time: '', unread: 0, avatar: 'SY' },
+    { id: '5', name: '伊藤 湊', lastMessage: '', time: '', unread: 0, avatar: 'IM' },
+    { id: '4', name: '高橋 陽菜', lastMessage: '', time: '', unread: 0, avatar: 'TH' }
   ];
 
-  var mockMessages = [
-    { id: 1, sender: 'doctor', text: '長谷川さん、こんにちは。装置の調子はいかがですか？', time: '14:00' },
-    { id: 2, sender: 'patient', text: '先生、こんにちは！昨日から少し違和感がありますが、頑張って着けています。', time: '14:15' },
-    { id: 3, sender: 'doctor', text: '素晴らしいですね。慣れるまで少し時間がかかるかもしれませんが、無理せず続けてください。痛みが強くなるようならまた連絡してください。', time: '14:20' },
-    { id: 4, sender: 'patient', text: 'わかりました！ありがとうございます！', time: '14:30' }
-  ];
+  var mockMessagesMap = {
+    '2': [
+      { id: 1, sender: 'doctor', text: 'こんにちは。調子はいかがですか？', time: '14:00' },
+      { id: 2, sender: 'patient', text: 'ありがとうございました！', time: '14:30' }
+    ],
+    '5': [
+      { id: 1, sender: 'patient', text: '装置が少し痛いです...', time: '昨日' }
+    ],
+    '4': [
+      { id: 1, sender: 'patient', text: '写真送りました', time: '1週間前' }
+    ]
+  };
 
   var initialStaff = [
     { id: 1, name: '堀幹 太郎', role: '院長', email: 'horimiki@example.com', status: 'active' },
@@ -94,9 +107,18 @@
     { id: 3, name: '鈴木 一郎', role: '受付', email: 'suzuki@example.com', status: 'inactive' }
   ];
 
-  var state = { staffList: initialStaff.slice(), selectedContact: mockContacts[0], messageInput: '', qrModalOpen: false };
+  var state = { 
+    staffList: initialStaff.slice(), 
+    selectedContact: mockContacts[0], 
+    messageInput: '', 
+    qrModalOpen: false,
+    messages: [],
+    detailYear: 2026,
+    detailMonth: 2,
+    lastPath: '' // スクロール維持判定用
+  };
 
-  // Icons (simplified SVG)
+  // Icons
   var ic = {
     layout: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="9"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>',
     users: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
@@ -119,8 +141,6 @@
     calendar: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
     save: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>',
     send: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>',
-    phone: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
-    video: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2" ry="2"/></svg>',
     more: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>',
     building: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/></svg>',
     user: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
@@ -130,7 +150,8 @@
     shield: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
     plus: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
     edit2: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>',
-    trash: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>'
+    trash: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>',
+    camera: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>'
   };
 
   function getEventIcon(type) {
@@ -138,14 +159,6 @@
     if (type === 'message') return ic.messageSq;
     if (type === 'registration') return ic.userPlus;
     return ic.clock;
-  }
-
-  function statusClass(s) {
-    if (s === '良好') return 'good';
-    if (s === '注意') return 'warning';
-    if (s === '警告') return 'danger';
-    if (s === '新規') return 'info';
-    return '';
   }
 
   function renderLogin() {
@@ -169,8 +182,8 @@
           '<div class="login-card-footer">' +
             '<button type="submit" class="btn-primary">ログイン</button>' +
             '<div class="login-links">' +
-              '<a href="#">アカウントの追加申請</a>' +
-              '<a href="#">パスワード再発行申請</a>' +
+              '<a href="#" onclick="showMockToast(\'アカウント追加申請フォームへ移動します\')">アカウントの追加申請</a>' +
+              '<a href="#" onclick="showMockToast(\'パスワード再発行申請フォームへ移動します\')">パスワード再発行申請</a>' +
             '</div>' +
           '</div>' +
         '</form>' +
@@ -209,10 +222,10 @@
           '</div>' +
           '<div class="header-actions">' +
             '<button type="button" class="btn" id="btn-qr">' + ic.qr + '<span>歯科医院情報QR</span></button>' +
-            '<button type="button" class="btn">' + ic.edit + '<span>情報編集</span></button>' +
+            '<button type="button" class="btn" onclick="showMockToast(\'医院情報の編集画面を開きます\')">' + ic.edit + '<span>情報編集</span></button>' +
             '<span class="header-divider"></span>' +
             '<div class="header-icons">' +
-              '<button type="button"><span class="badge red"></span>' + ic.bell + '</button>' +
+              '<button type="button" onclick="showMockToast(\'通知一覧を開きます\')"><span class="badge red"></span>' + ic.bell + '</button>' +
               '<a href="#/messages"><button type="button"><span class="badge blue"></span>' + ic.message + '</button></a>' +
             '</div>' +
             '<div class="header-avatar"><img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=100&h=100&fit=crop" alt="Doctor"/></div>' +
@@ -231,7 +244,7 @@
         '<div class="qr-modal-body">' +
           '<div class="qr-placeholder">' + ic.qr + '</div>' +
           '<p>患者用アプリ「ぴよぴた」でこのQRコードを読み取ると、<br/>医院情報が自動的に連携されます。</p>' +
-          '<button type="button" class="btn-download">画像をダウンロード</button>' +
+          '<button type="button" class="btn-download" onclick="showMockToast(\'QRコード画像をダウンロードしました\')">画像をダウンロード</button>' +
         '</div>' +
       '</div>' +
     '</div>';
@@ -277,7 +290,7 @@
         '<div class="card-header"><h3 class="card-title">' + ic.clock + 'お知らせタイムライン</h3></div>' +
         '<div class="card-content" style="padding:0">' + eventsHtml + '</div>' +
         '<div class="card-footer" style="text-align:center">' +
-          '<button type="button" class="btn btn-ghost">すべてのお知らせを見る</button>' +
+          '<button type="button" class="btn btn-ghost" onclick="showMockToast(\'すべてのお知らせ一覧を開きます\')">すべてのお知らせを見る</button>' +
         '</div>' +
       '</div>' +
       '<div class="card">' +
@@ -286,9 +299,6 @@
           '<p class="card-description danger">2日以上装着記録がない患者リスト</p>' +
         '</div>' +
         '<div class="card-content" style="padding:0;flex:1;overflow-y:auto">' + alertHtml + '</div>' +
-        '<div class="card-footer">' +
-          '<button type="button" class="btn btn-outline btn-danger">対象者全員にメッセージ</button>' +
-        '</div>' +
       '</div>' +
     '</div>';
   }
@@ -300,12 +310,11 @@
       return matchSearch && matchDevice;
     });
     var rows = filtered.map(function (p) {
-      return '<tr data-id="' + p.id + '">' +
+      return '<tr class="interactive" data-id="' + p.id + '">' +
         '<td class="chart-no">' + p.chartNo + '</td>' +
-        '<td><div class="patient-name">' + p.lastName + ' ' + p.firstName + '</div><div class="patient-kana">はせがわ もとひろ</div></td>' +
+        '<td><div class="patient-name">' + p.lastName + ' ' + p.firstName + '</div><div class="patient-kana">' + p.kana + '</div></td>' +
         '<td>' + p.age + '歳</td>' +
         '<td><span class="device-tag">' + p.device + '</span></td>' +
-        '<td><span class="status-badge ' + statusClass(p.status) + '">' + p.status + '</span></td>' +
         '<td style="text-align:right">' + ic.chevronRight + '</td>' +
       '</tr>';
     }).join('');
@@ -313,14 +322,14 @@
 
     return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">' +
       '<div><h1 class="page-title">患者検索</h1><p class="page-desc">カルテNo.や氏名から患者を検索します</p></div>' +
-      '<button type="button" class="btn btn-success">' + ic.userPlusBtn + '新規患者登録</button>' +
+      '<button type="button" class="btn btn-success" onclick="showMockToast(\'新規患者登録画面を開きます\')">' + ic.userPlusBtn + '新規患者登録</button>' +
     '</div>' +
     '<div class="card search-card" style="margin-bottom:1.5rem">' +
       '<div class="card-content">' +
         '<div class="form-grid">' +
           '<div class="form-group" style="grid-column: span 2">' +
             '<label>検索ワード (氏名・カルテNo)</label>' +
-            '<div class="search-wrap"><span class="icon">' + ic.search + '</span><input type="text" id="search-input" placeholder="例: 長谷川 / C00101" value="' + (searchTerm || '') + '"/></div>' +
+            '<div class="search-wrap"><span class="icon">' + ic.search + '</span><input type="text" id="search-input" placeholder="例: 山田 / C00101" value="' + (searchTerm || '') + '"/></div>' +
           '</div>' +
           '<div class="form-group">' +
             '<label>使用装置</label>' +
@@ -333,39 +342,146 @@
               '<option value="ムーシールド"' + (deviceFilter === 'ムーシールド' ? ' selected' : '') + '>ムーシールド</option>' +
             '</select>' +
           '</div>' +
-          '<button type="button" class="btn btn-primary">検索</button>' +
+          '<button type="button" class="btn btn-primary" onclick="showMockToast(\'検索を実行しました\')">検索</button>' +
         '</div>' +
       '</div>' +
     '</div>' +
-    '<div class="table-wrap">' +
-      (empty || ('<table class="staff-table"><thead><tr><th style="width:8rem">カルテNo.</th><th>氏名</th><th style="width:6rem">年齢</th><th>使用装置</th><th style="width:8rem">状態</th><th style="width:6rem">詳細</th></tr></thead><tbody>' + rows + '</tbody></table>')) +
+    '<div class="card" style="overflow:hidden;">' +
+      (empty || ('<table class="data-table"><thead><tr><th style="width:8rem">カルテNo.</th><th>氏名</th><th style="width:6rem">年齢</th><th>使用装置</th><th style="width:6rem">詳細</th></tr></thead><tbody>' + rows + '</tbody></table>')) +
     '</div>';
   }
 
   function renderPatientDetail(id) {
-    var chartBars = chartData.map(function (d) {
-      var cls = d.rate > 90 ? 'good' : d.rate > 80 ? 'mid' : 'low';
-      return '<div class="chart-bar-wrap"><div class="chart-bar ' + cls + '" style="height:' + (d.rate * 2) + 'px"></div><span class="chart-bar-label">' + d.name + '</span></div>';
-    }).join('');
+    var p = mockPatients.find(function(pt) { return pt.id === id; });
+    if (!p) {
+      p = mockPatients[0];
+    }
 
+    var year = state.detailYear;
+    var month = state.detailMonth;
+
+    var daysInMonth = new Date(year, month, 0).getDate();
+
+    // --- カレンダーデータ生成 ---
+    var calendarDays = [];
+    var lsRecords = (p.id === '1') ? lsSync.getRecords() : [];
+
+    for (var i = 1; i <= daysInMonth; i++) {
+      var dStr = year + '-' + String(month).padStart(2, '0') + '-' + String(i).padStart(2, '0');
+      var status = '';
+      var recTime = '';
+      
+      if (p.id === '1') {
+        var rec = lsRecords.find(function(r) { 
+          var rd = new Date(r.date); 
+          return rd.getDate() === i && (rd.getMonth() + 1) === month && rd.getFullYear() === year; 
+        });
+        if(rec) {
+          status = rec.evaluation;
+          recTime = rec.time;
+        }
+      } else {
+        var r = Math.random();
+        if (r > 0.85) status = '';
+        else if (r > 0.6) status = 'good';
+        else if (r > 0.4) status = 'normal';
+        else if (r > 0.2) status = 'peeled';
+        else status = 'bad';
+        if (status) recTime = '20:00';
+      }
+      
+      calendarDays.push({
+        day: i,
+        date: dStr,
+        status: status,
+        time: recTime
+      });
+    }
+
+    var firstDay = new Date(year, month - 1, 1).getDay();
     var calHtml = '<div class="calendar-grid">';
-    calHtml += '<div class="calendar-day empty"></div><div class="calendar-day empty"></div>';
+    for(var j=0; j<firstDay; j++) {
+      calHtml += '<div class="calendar-day empty"></div>';
+    }
     calendarDays.forEach(function (d) {
-      calHtml += '<button type="button" class="calendar-day" data-date="' + d.date + '"><span>' + d.day + '</span><span class="day-dot ' + d.status + '"></span></button>';
+      var emptyClass = d.status === '' ? ' empty-record' : '';
+      calHtml += '<button type="button" class="calendar-day' + emptyClass + '" data-date="' + d.date + '" data-time="' + d.time + '" data-status="' + d.status + '"><span>' + d.day + '</span>' + (d.status ? '<span class="day-dot ' + d.status + '"></span>' : '') + '</button>';
     });
     calHtml += '</div>';
+
+    // --- 円グラフ用のデータ集計とHTML生成 ---
+    var stats = { good: 0, normal: 0, peeled: 0, bad: 0, empty: 0 };
+    calendarDays.forEach(function (d) {
+      if (d.status === 'good') stats.good++;
+      else if (d.status === 'normal') stats.normal++;
+      else if (d.status === 'peeled') stats.peeled++;
+      else if (d.status === 'bad') stats.bad++;
+      else stats.empty++;
+    });
+
+    var totalDays = daysInMonth;
+    var recordedDays = stats.good + stats.normal + stats.peeled + stats.bad;
+    var achieveRate = Math.round((recordedDays / totalDays) * 100) || 0;
+
+    var goodDeg = (stats.good / totalDays) * 100;
+    var normalDeg = (stats.normal / totalDays) * 100;
+    var peeledDeg = (stats.peeled / totalDays) * 100;
+    var badDeg = (stats.bad / totalDays) * 100;
+
+    var deg1 = goodDeg;
+    var deg2 = deg1 + normalDeg;
+    var deg3 = deg2 + peeledDeg;
+    var deg4 = deg3 + badDeg;
+
+    var conicGradient = 'conic-gradient(' +
+      '#4A90E2 0% ' + deg1 + '%, ' +
+      '#FFD700 ' + deg1 + '% ' + deg2 + '%, ' +
+      '#4CAF50 ' + deg2 + '% ' + deg3 + '%, ' +
+      '#FF6B6B ' + deg3 + '% ' + deg4 + '%, ' +
+      '#e2e8f0 ' + deg4 + '% 100%' +
+    ')';
+
+    var prevMonth = month === 1 ? 12 : month - 1;
+    var prevYear = month === 1 ? year - 1 : year;
+    var nextMonth = month === 12 ? 1 : month + 1;
+    var nextYear = month === 12 ? year + 1 : year;
+
+    var monthSelectorHtml = 
+      '<div style="display:flex; align-items:center; gap:0.5rem; margin-bottom: 0.5rem;">' +
+        '<button type="button" class="btn btn-ghost month-nav" style="padding:0.25rem" data-y="' + prevYear + '" data-m="' + prevMonth + '">' + ic.chevronLeft + '</button>' +
+        '<span style="font-weight:700; font-size:1rem; width:120px; text-align:center; white-space:nowrap;">' + year + '年' + month + '月</span>' +
+        '<button type="button" class="btn btn-ghost month-nav" style="padding:0.25rem" data-y="' + nextYear + '" data-m="' + nextMonth + '">' + ic.chevronRight + '</button>' +
+      '</div>';
+
+    var pieChartHtml = 
+      '<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap: 1rem;">' +
+        monthSelectorHtml +
+        '<div style="position:relative; width:140px; height:140px; border-radius:50%; background:' + conicGradient + '; flex-shrink: 0;">' +
+          '<div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:96px; height:96px; background:var(--card); border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);">' +
+            '<span style="font-size:0.75rem; color:var(--muted); font-weight:500;">装着率</span>' +
+            '<span style="font-size:1.5rem; font-weight:bold; color:var(--fg); line-height:1.2;">' + achieveRate + '%</span>' +
+          '</div>' +
+        '</div>' +
+        '<div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.75rem; color:var(--muted); margin-top:0.5rem; width: 100%; padding: 0 1rem;">' +
+          '<div style="display:flex; align-items:center; justify-content:space-between; gap:0.25rem;"><span><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#4A90E2; margin-right:4px;"></span>完全脱色:</span> <b>' + stats.good + '日</b></div>' +
+          '<div style="display:flex; align-items:center; justify-content:space-between; gap:0.25rem;"><span><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#FFD700; margin-right:4px;"></span>不十分:</span> <b>' + stats.normal + '日</b></div>' +
+          '<div style="display:flex; align-items:center; justify-content:space-between; gap:0.25rem;"><span><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#4CAF50; margin-right:4px;"></span>剥離:</span> <b>' + stats.peeled + '日</b></div>' +
+          '<div style="display:flex; align-items:center; justify-content:space-between; gap:0.25rem;"><span><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#FF6B6B; margin-right:4px;"></span>脱色なし:</span> <b>' + stats.bad + '日</b></div>' +
+        '</div>' +
+        '<div style="font-size:0.75rem; color:var(--muted); text-align:center; width: 100%; border-top: 1px solid var(--border-light); padding-top:0.5rem;">未記録: ' + stats.empty + '日</div>' +
+      '</div>';
 
     return '<div class="detail-header">' +
       '<div class="back">' +
         '<button type="button" id="detail-back">' + ic.chevronLeft + '</button>' +
         '<div>' +
-          '<h1>長谷川 元洋 <span class="age-badge">8歳</span> <span class="chart-no">カルテNo: C00101</span></h1>' +
-          '<p class="last-visit">最終来院日: 2025/12/15</p>' +
+          '<h1>' + p.lastName + ' ' + p.firstName + ' <span class="age-badge">' + p.age + '歳</span> <span class="chart-no">カルテNo: ' + p.chartNo + '</span></h1>' +
+          '<p class="last-visit">最終来院日: 2026/01/15</p>' +
         '</div>' +
       '</div>' +
       '<div class="detail-actions">' +
-        '<button type="button" class="btn btn-outline">' + ic.calendar + '来院予約</button>' +
-        '<button type="button" class="btn btn-primary">' + ic.save + '変更を保存</button>' +
+        '<button type="button" class="btn btn-outline" onclick="showMockToast(\'来院予約画面を開きます\')">' + ic.calendar + '来院予約</button>' +
+        '<button type="button" class="btn btn-primary" onclick="showMockToast(\'変更を保存しました\')">' + ic.save + '変更を保存</button>' +
       '</div>' +
     '</div>' +
     '<div class="card device-panel" style="margin-bottom:1.5rem">' +
@@ -373,10 +489,17 @@
         '<h3 class="card-title">' + ic.clock + '装置設定</h3>' +
       '</div>' +
       '<div class="card-content">' +
-        '<div class="form-grid">' +
-          '<div class="form-group"><label>使用装置</label><select><option>インビザライン</option><option>拡大床</option><option>プレオルソ</option></select></div>' +
+        '<div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr auto;">' +
+          '<div class="form-group"><label>使用装置</label><select>' +
+          '<option' + (p.device === 'インビザライン' ? ' selected' : '') + '>インビザライン</option>' +
+          '<option' + (p.device === '拡大床' ? ' selected' : '') + '>拡大床</option>' +
+          '<option' + (p.device === 'プレオルソ' ? ' selected' : '') + '>プレオルソ</option>' +
+          '<option' + (p.device === 'マイオブレース' ? ' selected' : '') + '>マイオブレース</option>' +
+          '<option' + (p.device === 'ムーシールド' ? ' selected' : '') + '>ムーシールド</option>' +
+          '</select></div>' +
           '<div class="form-group"><label>使用開始日</label><input type="date" value="2025-01-15"/></div>' +
-          '<button type="button" class="btn btn-outline">設定を反映 (アプリへ送信)</button>' +
+          '<div class="form-group"><label>使用終了予定日</label><input type="date" value="2026-12-01"/></div>' +
+          '<button type="button" class="btn btn-outline" onclick="showMockToast(\'アプリ側へ設定を送信しました\')">設定を反映 (アプリへ送信)</button>' +
         '</div>' +
       '</div>' +
     '</div>' +
@@ -385,55 +508,61 @@
         '<div class="card-header"><h3 class="card-title">治療進捗状況</h3><p class="card-description">現在の装置の装着期間と全体の進捗</p></div>' +
         '<div class="card-content">' +
           '<div class="progress-section">' +
-            '<div class="progress-header"><span>現在の装置: インビザライン #3</span><span>1年2ヶ月 / 予定2年</span></div>' +
+            '<div class="progress-header"><span>現在の装置: ' + p.device + ' #3</span><span>1年2ヶ月 / 予定2年</span></div>' +
             '<div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:58%"></div></div>' +
             '<div class="progress-footer"><span>開始: 2024/12/01</span><span>終了予定: 2026/12/01</span></div>' +
           '</div>' +
           '<h4 style="font-size:0.875rem;font-weight:700;margin:1rem 0 0.5rem">装置履歴</h4>' +
           '<div class="history-list">' +
-            '<div class="history-item current"><span class="dot red"></span><div class="body"><div class="title">インビザライン #3 (現在)</div><div class="date">2026/01/15 - 現在</div></div><span class="status red">装着中</span></div>' +
-            '<div class="history-item done"><span class="dot blue"></span><div class="body"><div class="title">インビザライン #2</div><div class="date">2025/12/01 - 2026/01/14</div></div><span class="status blue">完了</span></div>' +
-            '<div class="history-item done older"><span class="dot blue"></span><div class="body"><div class="title">インビザライン #1</div><div class="date">2025/11/01 - 2025/11/30</div></div><span class="status blue">完了</span></div>' +
+            '<div class="history-item current"><span class="dot red"></span><div class="body"><div class="title">' + p.device + ' #3 (現在)</div><div class="date">2026/01/15 - 現在</div></div><span class="status red">装着中</span></div>' +
+            '<div class="history-item done"><span class="dot blue"></span><div class="body"><div class="title">' + p.device + ' #2</div><div class="date">2025/12/01 - 2026/01/14</div></div><span class="status blue">完了</span></div>' +
+            '<div class="history-item done older"><span class="dot blue"></span><div class="body"><div class="title">' + p.device + ' #1</div><div class="date">2025/11/01 - 2025/11/30</div></div><span class="status blue">完了</span></div>' +
           '</div>' +
         '</div>' +
       '</div>' +
       '<div class="card chart-card">' +
-        '<div class="card-header"><h3 class="card-title">装着達成率</h3><p class="card-description">月ごとの目標達成日数割合</p></div>' +
-        '<div class="card-content" style="height:300px">' +
-          '<div class="chart-bars">' + chartBars + '</div>' +
+        '<div class="card-header"><h3 class="card-title">毎月の装着状況</h3><p class="card-description">選択した月の評価内訳</p></div>' +
+        '<div class="card-content" style="height:340px; display:flex; align-items:center; justify-content:center; padding:1rem;">' +
+          pieChartHtml +
         '</div>' +
       '</div>' +
     '</div>' +
     '<div class="card">' +
       '<div class="card-header" style="display:flex;justify-content:space-between;align-items:center">' +
-        '<h3 class="card-title">装着カレンダー (2026年2月)</h3>' +
+        '<h3 class="card-title">装着カレンダー (' + year + '年' + month + '月)</h3>' +
         '<div class="calendar-legend">' +
-          '<span><span class="dot" style="background:var(--blue)"></span>完璧</span>' +
-          '<span><span class="dot" style="background:var(--green)"></span>良好</span>' +
-          '<span><span class="dot" style="background:#eab308"></span>注意</span>' +
-          '<span><span class="dot" style="background:var(--red)"></span>未達</span>' +
+          '<span><span class="dot good"></span>完全脱色</span>' +
+          '<span><span class="dot normal"></span>不十分</span>' +
+          '<span><span class="dot bad"></span>ほぼ脱色なし</span>' +
+          '<span><span class="dot peeled"></span>シール剥がれ</span>' +
         '</div>' +
       '</div>' +
       '<div class="card-content">' +
-        '<div style="grid-template-columns:repeat(7,1fr);gap:0.5rem;margin-bottom:0.5rem;text-align:center;font-size:0.875rem;color:var(--muted);font-weight:500;display:grid">日 月 火 水 木 金 土</div>' +
+        '<div style="grid-template-columns:repeat(7,1fr);gap:0.5rem;margin-bottom:0.5rem;text-align:center;font-size:0.875rem;color:var(--muted);font-weight:500;display:grid">' +
+          '<div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>' +
+        '</div>' +
         calHtml +
       '</div>' +
     '</div>' +
-    (state.photoModalDate ? renderPhotoModal(state.photoModalDate) : '');
+    (state.photoModalDate ? renderPhotoModal(state.photoModalDate, state.photoModalTime, state.photoModalStatus) : '');
   }
 
-  function renderPhotoModal(date) {
+  function renderPhotoModal(date, time, status) {
+    var evalLabels = { good: '完全脱色', normal: '不十分', bad: 'ほぼ脱色なし', peeled: 'シール剥がれ' };
+    var evalColors = { good: '#4A90E2', normal: '#FFD700', bad: '#FF6B6B', peeled: '#4CAF50' };
+    var label = evalLabels[status] || '未記録';
+    var color = evalColors[status] || '#666';
+
     return '<div id="photo-modal" class="modal-overlay">' +
       '<div class="modal-content">' +
         '<div class="modal-header"><h2>' + date + ' の装着記録</h2></div>' +
         '<div class="modal-body">' +
-          '<div class="photo-wrap">' +
-            '<img src="https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=500&h=400&fit=crop" alt="Mouth"/>' +
-            '<span class="photo-caption">撮影時刻: 20:15</span>' +
+          '<div class="photo-wrap" style="aspect-ratio:16/9; background:var(--muted-bg); border-radius:var(--radius); display:flex; align-items:center; justify-content:center; color:var(--muted); margin-bottom:1rem; flex-direction:column;">' +
+            ic.camera + '<span style="margin-top:0.5rem; font-weight:500;">撮影イメージ</span>' +
           '</div>' +
           '<div class="stats-grid">' +
-            '<div class="stat-box"><div class="label">装着時間</div><div class="value">12h 30m</div></div>' +
-            '<div class="stat-box"><div class="label">評価</div><div class="value blue">Good!</div></div>' +
+            '<div class="stat-box"><div class="label">記録時刻</div><div class="value">' + (time || '--:--') + '</div></div>' +
+            '<div class="stat-box"><div class="label">評価</div><div class="value" style="color:' + color + '">' + label + '</div></div>' +
           '</div>' +
         '</div>' +
       '</div>' +
@@ -442,9 +571,22 @@
 
   function renderMessages() {
     var contact = state.selectedContact;
+
+    mockContacts.forEach(function(c) {
+      var msgs = (c.id === '1') ? state.messages : (mockMessagesMap[c.id] || []);
+      if(msgs.length > 0) {
+        var lastMsg = msgs[msgs.length - 1];
+        c.lastMessage = lastMsg.text;
+        c.time = lastMsg.time;
+      } else {
+        c.lastMessage = 'メッセージはありません';
+        c.time = '';
+      }
+    });
+
     var listHtml = mockContacts.map(function (c) {
       return '<button type="button" class="contact-item' + (c.id === contact.id ? ' active' : '') + '" data-id="' + c.id + '">' +
-        '<div class="avatar">' + c.avatar + (c.unread > 0 ? '<span class="unread">' + c.unread + '</span>' : '') + '</div>' +
+        '<div class="avatar">' + c.avatar + '</div>' +
         '<div class="body">' +
           '<div style="display:flex;justify-content:space-between;margin-bottom:0.25rem"><span class="name">' + c.name + '</span><span class="time">' + c.time + '</span></div>' +
           '<p class="preview">' + c.lastMessage + '</p>' +
@@ -452,7 +594,9 @@
       '</button>';
     }).join('');
 
-    var msgHtml = mockMessages.map(function (m) {
+    var msgsToRender = (contact.id === '1') ? state.messages : (mockMessagesMap[contact.id] || []);
+
+    var msgHtml = msgsToRender.map(function (m) {
       return '<div class="chat-msg ' + m.sender + '">' +
         '<span class="time">' + m.time + '</span>' +
         '<div class="bubble ' + m.sender + '">' + m.text + '</div>' +
@@ -468,19 +612,17 @@
         '<div class="chat-header">' +
           '<div class="user-info">' +
             '<div class="avatar">' + contact.avatar + '</div>' +
-            '<div><div class="name">' + contact.name + '</div><div class="online"><span class="dot"></span>オンライン</div></div>' +
+            '<div><div class="name">' + contact.name + '</div></div>' +
           '</div>' +
           '<div class="actions">' +
-            '<button type="button">' + ic.phone + '</button>' +
-            '<button type="button">' + ic.video + '</button>' +
-            '<button type="button">' + ic.more + '</button>' +
+            '<button type="button" onclick="showMockToast(\'詳細メニューを開きます\')">' + ic.more + '</button>' +
           '</div>' +
         '</div>' +
-        '<div class="chat-messages">' + msgHtml + '</div>' +
+        '<div class="chat-messages" id="chat-messages">' + msgHtml + '</div>' +
         '<div class="chat-input-wrap">' +
           '<div class="row">' +
             '<input type="text" placeholder="メッセージを入力..." id="message-input" value="' + (state.messageInput || '') + '"/>' +
-            '<button type="button" class="btn-send">' + ic.send + '</button>' +
+            '<button type="button" class="btn-send" id="btn-send">' + ic.send + '</button>' +
           '</div>' +
         '</div>' +
       '</div>' +
@@ -501,14 +643,14 @@
       return '<tr><td style="font-weight:500">' + s.name + '</td><td>' + s.role + '</td><td>' + s.email + '</td>' +
         '<td><span class="badge ' + (s.status === 'active' ? 'active' : 'inactive') + '">' + (s.status === 'active' ? '有効' : '無効') + '</span></td>' +
         '<td class="actions">' +
-          '<button type="button">' + ic.edit2 + '</button>' +
+          '<button type="button" onclick="showMockToast(\'スタッフ情報を編集します\')">' + ic.edit2 + '</button>' +
           '<button type="button" class="danger" data-delete="' + s.id + '">' + ic.trash + '</button>' +
         '</td></tr>';
     }).join('');
 
     return '<div class="settings-header">' +
       '<div><h1 class="page-title">設定</h1><p class="page-desc">医院情報やアカウント設定を管理します</p></div>' +
-      '<button type="button" class="btn btn-primary">' + ic.save + '変更を保存</button>' +
+      '<button type="button" class="btn btn-primary" onclick="showMockToast(\'設定内容を保存しました\')">' + ic.save + '変更を保存</button>' +
     '</div>' +
     '<div class="tabs-list">' + tabButtons + '</div>' +
     '<div id="tab-clinic" class="tab-content' + (activeTab === 'clinic' ? ' active' : '') + '">' +
@@ -541,7 +683,7 @@
           '<div class="form-group"><label>現在のパスワード</label><div class="input-wrap"><span class="icon">' + ic.lock + '</span><input type="password" placeholder="••••••••"/></div></div>' +
           '<div class="row-2"><div class="form-group"><label>新しいパスワード</label><div class="input-wrap"><span class="icon">' + ic.lock + '</span><input type="password" placeholder="新しいパスワード"/></div></div><div class="form-group"><label>パスワード確認</label><div class="input-wrap"><span class="icon">' + ic.lock + '</span><input type="password" placeholder="もう一度入力"/></div></div></div>' +
         '</div>' +
-        '<div class="card-footer" style="border-top:1px solid var(--border-light);padding:1rem;display:flex;justify-content:flex-end"><button type="button" class="btn btn-outline">パスワードを変更</button></div>' +
+        '<div class="card-footer" style="border-top:1px solid var(--border-light);padding:1rem;display:flex;justify-content:flex-end"><button type="button" class="btn btn-outline" onclick="showMockToast(\'パスワードを変更しました\')">パスワードを変更</button></div>' +
       '</div>' +
       '<div class="card settings-card" style="max-width:42rem;margin-top:1.5rem">' +
         '<div class="card-header"><h3 class="card-title">通知設定</h3><p class="card-description">システムからの通知を受け取る条件を設定します</p></div>' +
@@ -556,10 +698,10 @@
       '<div class="card">' +
         '<div class="card-header" style="display:flex;justify-content:space-between;align-items:center">' +
           '<div><h3 class="card-title">スタッフ一覧</h3><p class="card-description">管理画面にアクセスできるスタッフを管理します</p></div>' +
-          '<button type="button" class="btn btn-primary btn-sm">' + ic.plus + 'スタッフ追加</button>' +
+          '<button type="button" class="btn btn-primary btn-sm" onclick="showMockToast(\'スタッフ追加画面を開きます\')">' + ic.plus + 'スタッフ追加</button>' +
         '</div>' +
         '<div class="card-content">' +
-          '<table class="staff-table"><thead><tr><th>氏名</th><th>役割</th><th>メールアドレス</th><th>ステータス</th><th style="text-align:right">操作</th></tr></thead><tbody>' + staffRows + '</tbody></table>' +
+          '<table class="data-table"><thead><tr><th>氏名</th><th>役割</th><th>メールアドレス</th><th>ステータス</th><th style="text-align:right">操作</th></tr></thead><tbody>' + staffRows + '</tbody></table>' +
         '</div>' +
       '</div>' +
     '</div>';
@@ -593,10 +735,31 @@
       return;
     }
 
+    // データ同期準備
+    state.messages = lsSync.getMessages();
+
+    // 再描画前に現在のスクロール位置を記憶する
+    // ※同じページ内の操作の時のみ保持（別ページへの移動時はリセット）
+    var currentPath = window.location.hash;
+    var isSamePage = state.lastPath === currentPath;
+    state.lastPath = currentPath;
+
+    var scrollStates = { main: 0, chat: 0, contacts: 0 };
+    if (isSamePage) {
+      var mainEl = app.querySelector('.main');
+      if (mainEl) scrollStates.main = mainEl.scrollTop;
+      
+      var chatEl = app.querySelector('.chat-messages');
+      if (chatEl) scrollStates.chat = chatEl.scrollTop;
+      
+      var contactsEl = app.querySelector('.contact-list');
+      if (contactsEl) scrollStates.contacts = contactsEl.scrollTop;
+    }
+
     var content = '';
     if (seg.base === '/' || seg.base === '') {
       content = renderHome();
-    } else if (seg.base === '/patients' && seg.id) {
+    } else if (seg.base === '/patients/:id' && seg.id) {
       content = renderPatientDetail(seg.id);
     } else if (seg.base === '/patients') {
       content = renderPatientSearch(state.searchTerm, state.deviceFilter);
@@ -608,7 +771,24 @@
       content = renderHome();
     }
 
+    // DOMの書き換え
     app.innerHTML = renderDashboard(content, seg.base);
+
+    // 再描画後にスクロール位置を復元する
+    if (isSamePage) {
+      var newMainEl = app.querySelector('.main');
+      if (newMainEl && scrollStates.main > 0) newMainEl.scrollTop = scrollStates.main;
+
+      var newChatEl = app.querySelector('.chat-messages');
+      if (newChatEl && scrollStates.chat > 0) newChatEl.scrollTop = scrollStates.chat;
+
+      var newContactsEl = app.querySelector('.contact-list');
+      if (newContactsEl && scrollStates.contacts > 0) newContactsEl.scrollTop = scrollStates.contacts;
+    } else {
+      // 違うページに移動した場合は強制的に一番上に戻す
+      var resetMainEl = app.querySelector('.main');
+      if (resetMainEl) resetMainEl.scrollTop = 0;
+    }
 
     // Events
     var logoutBtn = app.querySelector('#btn-logout');
@@ -644,17 +824,31 @@
     var deviceFilter = app.querySelector('#device-filter');
     if (searchInput) searchInput.addEventListener('input', function () { state.searchTerm = this.value; render(); });
     if (deviceFilter) deviceFilter.addEventListener('change', function () { state.deviceFilter = this.value || ''; render(); });
-    app.querySelectorAll('.table-wrap tbody tr').forEach(function (tr) {
+    app.querySelectorAll('.data-table tbody tr.interactive').forEach(function (tr) {
       tr.addEventListener('click', function () { navigateTo('/patients/' + tr.getAttribute('data-id')); });
     });
 
     // Patient detail
     var detailBack = app.querySelector('#detail-back');
     if (detailBack) detailBack.addEventListener('click', function () { window.history.back(); });
+    
+    // 月の切り替えイベント
+    app.querySelectorAll('.month-nav').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        state.detailYear = parseInt(btn.getAttribute('data-y'), 10);
+        state.detailMonth = parseInt(btn.getAttribute('data-m'), 10);
+        render();
+      });
+    });
+
     app.querySelectorAll('.calendar-day[data-date]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        state.photoModalDate = btn.getAttribute('data-date');
-        render();
+        if(!btn.classList.contains('empty') && btn.getAttribute('data-status')) {
+          state.photoModalDate = btn.getAttribute('data-date');
+          state.photoModalTime = btn.getAttribute('data-time');
+          state.photoModalStatus = btn.getAttribute('data-status');
+          render();
+        }
       });
     });
     if (state.photoModalDate) {
@@ -674,8 +868,30 @@
         render();
       });
     });
+
     var msgInput = app.querySelector('#message-input');
     if (msgInput) msgInput.addEventListener('input', function () { state.messageInput = this.value; });
+
+    var btnSend = app.querySelector('#btn-send');
+    if (btnSend && msgInput) {
+      btnSend.addEventListener('click', function () {
+        if (msgInput.value.trim() !== '') {
+          var now = new Date();
+          var timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+          // 山田太郎(id:1)の場合のみ同期に書き込む
+          if (state.selectedContact.id === '1') {
+            state.messages.push({ id: Date.now(), sender: 'doctor', text: msgInput.value.trim(), time: timeStr });
+            lsSync.saveMessages(state.messages);
+          }
+          state.messageInput = '';
+          render();
+          
+          // チャット送信時は、強制的に一番下までスクロールさせる
+          var area = document.getElementById('chat-messages');
+          if (area) area.scrollTop = area.scrollHeight;
+        }
+      });
+    }
 
     // Settings tabs
     app.querySelectorAll('.tabs-list button').forEach(function (btn) {
@@ -698,4 +914,31 @@
   window.addEventListener('hashchange', render);
   if (!window.location.hash || window.location.hash === '#') window.location.hash = '/';
   render();
+
+  // 自動同期用ポーリング (デモ用)
+  setInterval(function() {
+    var needRender = false;
+    
+    // メッセージの同期監視
+    if (window.location.hash === '#/messages') {
+      var oldMsgLen = state.messages.length;
+      var msgs = lsSync.getMessages();
+      if (msgs.length !== oldMsgLen) {
+        needRender = true;
+      }
+    }
+    
+    // カレンダーの同期監視（山田太郎の詳細画面を開いている時）
+    if (window.location.hash.startsWith('#/patients/1')) {
+      var lsRecs = lsSync.getRecords();
+      if (state._lastRecCount !== lsRecs.length) {
+        state._lastRecCount = lsRecs.length;
+        needRender = true;
+      }
+    }
+
+    if (needRender) {
+      render();
+    }
+  }, 2000);
 })();
