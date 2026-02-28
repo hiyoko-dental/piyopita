@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ぴよぴた - テストリリース ポータル</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg-color: #f8fafc;
+      --text-main: #334155;
+      --text-sub: #64748b;
+      --patient-primary: #FF8C42;
+      --patient-bg: #FFF8DC;
+      --doctor-primary: #2563eb;
+      --doctor-bg: #eff6ff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'M PLUS Rounded 1c', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 800px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .logo {
+      margin-bottom: 2.5rem;
+    }
+
+    .logo-icon {
+      width: 80px;
+      height: 80px;
+      background-color: #FFD700;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    }
+
+    .logo-icon svg {
+      width: 48px;
+      height: 48px;
+      color: var(--patient-primary);
+    }
+
+    h1 {
+      color: var(--patient-primary);
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .desc {
+      color: var(--text-sub);
+      font-size: 1rem;
+      margin-bottom: 3rem;
+    }
+
+    /* ボタン（リンクカード）のレイアウト */
+    .links-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      justify-content: center;
+    }
+
+    .card {
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem 1.5rem;
+      width: 100%;
+      max-width: 340px;
+      text-decoration: none;
+      color: var(--text-main);
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 25px -5px rgba(0,0,0,0.1);
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+    }
+
+    /* 患者向けカードの装飾 */
+    .card.patient::before { background-color: var(--patient-primary); }
+    .card.patient .icon-wrap { background-color: var(--patient-bg); color: var(--patient-primary); }
+    .card.patient .recommend { background-color: #ffedd5; color: #ea580c; }
+
+    /* 歯科医師向けカードの装飾 */
+    .card.doctor::before { background-color: var(--doctor-primary); }
+    .card.doctor .icon-wrap { background-color: var(--doctor-bg); color: var(--doctor-primary); }
+    .card.doctor .recommend { background-color: #dbeafe; color: #1d4ed8; }
+
+    .icon-wrap {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .icon-wrap svg {
+      width: 36px;
+      height: 36px;
+    }
+
+    .card h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .card p {
+      font-size: 0.875rem;
+      color: var(--text-sub);
+      line-height: 1.5;
+    }
+
+    .recommend {
+      display: inline-block;
+      margin-top: 1.25rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    footer {
+      margin-top: 4rem;
+      color: #94a3b8;
+      font-size: 0.875rem;
+    }
+
+    /* スマホ向け調整 */
+    @media (max-width: 600px) {
+      h1 { font-size: 2rem; }
+      .card { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 7h.01"/><path d="M3.4 18H12a8 8 0 0 0 8-8V7a4 4 0 0 0-7.28-2.3L2 20"/><path d="m20 7 2 .5-2 .5"/><path d="M10 18v3"/><path d="M14 17.75V21"/><path d="M7 18a6 6 0 0 0 3.84-10.61"/>
+        </svg>
+      </div>
+      <h1>ぴよぴた</h1>
+      <p class="desc">テストリリース用 動作確認ポータル</p>
+    </div>
+
+    <div class="links-grid">
+      <a href="PiyoPita-Mobile-Web/index.html" class="card patient">
+        <div class="icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
+          </svg>
+        </div>
+        <h2>患者様向け画面</h2>
+        <p>日々の装置装着時間の記録や、<br>医院とのメッセージのやり取りを行います。</p>
+        <span class="recommend">📱 スマホ閲覧推奨</span>
+      </a>
+
+      <a href="PiyoPita-PC-Web/index.html" class="card doctor">
+        <div class="icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+          </svg>
+        </div>
+        <h2>歯科医師様向け画面</h2>
+        <p>患者の装着状況の管理や、<br>メッセージの確認、医院情報の設定を行います。</p>
+        <span class="recommend">💻 PC閲覧推奨</span>
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2026 PiyoPita Project.
+  </footer>
+
+</body>
+</html>
