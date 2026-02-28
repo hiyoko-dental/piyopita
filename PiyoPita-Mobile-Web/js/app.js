@@ -1,6 +1,28 @@
 (function () {
   'use strict';
 
+  // --- LocalStorage Sync for Mobile & PC ---
+  var lsSync = {
+    getRecords: function() {
+      return JSON.parse(localStorage.getItem('piyopita_records') || '[]');
+    },
+    saveRecords: function(records) {
+      localStorage.setItem('piyopita_records', JSON.stringify(records));
+    },
+    getMessages: function() {
+      var msgs = localStorage.getItem('piyopita_messages');
+      if (!msgs) {
+        msgs = [{ id: 1, sender: 'doctor', text: 'こんにちは。装置の調子はいかがですか？', time: '14:00' }];
+        localStorage.setItem('piyopita_messages', JSON.stringify(msgs));
+        return msgs;
+      }
+      return JSON.parse(msgs);
+    },
+    saveMessages: function(msgs) {
+      localStorage.setItem('piyopita_messages', JSON.stringify(msgs));
+    }
+  };
+
   // --- State (in-memory for demo) ---
   var defaultClinicInfo = { clinicId: '', doctorId: '', clinicName: 'ほりみき歯科', doctorName: '堀 美喜' };
   
@@ -23,14 +45,30 @@
       clinicName: defaultClinicInfo.clinicName,
       doctorName: defaultClinicInfo.doctorName
     },
-    records: [
-      { id: '1', date: new Date(2026, 1, 10), evaluation: 'good', time: '07:15', isTimeModified: false },
-      { id: '2', date: new Date(2026, 1, 11), evaluation: 'good', time: '07:20', isTimeModified: false },
-      { id: '3', date: new Date(2026, 1, 12), evaluation: 'normal', time: '08:30', isTimeModified: true },
-      { id: '4', date: new Date(2026, 1, 13), evaluation: 'peeled', time: '07:00', isTimeModified: false }
-    ],
+    records: [],
+    messages: [],
     lastRouteState: null
   };
+
+  // 初期データのロード
+  function initData() {
+    var loadedRecords = lsSync.getRecords();
+    if (loadedRecords.length > 0) {
+      state.records = loadedRecords.map(function(r) {
+        r.date = new Date(r.date);
+        return r;
+      });
+    } else {
+      state.records = [
+        { id: '1', date: new Date(2026, 1, 10), evaluation: 'good', time: '07:15', isTimeModified: false },
+        { id: '2', date: new Date(2026, 1, 11), evaluation: 'good', time: '07:20', isTimeModified: false },
+        { id: '3', date: new Date(2026, 1, 12), evaluation: 'normal', time: '08:30', isTimeModified: true },
+        { id: '4', date: new Date(2026, 1, 13), evaluation: 'peeled', time: '07:00', isTimeModified: false }
+      ];
+      lsSync.saveRecords(state.records);
+    }
+    state.messages = lsSync.getMessages();
+  }
 
   function setPatientInfo(info) {
     state.patientInfo = info;
@@ -47,6 +85,14 @@
 
   function addRecord(record) {
     state.records = state.records.concat([record]);
+    lsSync.saveRecords(state.records); // 同期
+  }
+
+  function addMessage(text) {
+    var now = new Date();
+    var timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+    state.messages.push({ id: Date.now(), sender: 'patient', text: text, time: timeStr });
+    lsSync.saveMessages(state.messages); // 同期
   }
 
   function getRecordByDate(date) {
@@ -69,7 +115,8 @@
     'record-confirm': 'RecordConfirm',
     'game': 'Game',
     'menu': 'Menu',
-    'device-info': 'DeviceInfo'
+    'device-info': 'DeviceInfo',
+    'messages': 'Messages' // メッセージ機能追加
   };
 
   function getPath() {
@@ -101,6 +148,11 @@
     var app = document.getElementById('app');
     if (!app) return;
 
+    // 定期的に最新のメッセージと記録を同期
+    state.messages = lsSync.getMessages();
+    var lsR = lsSync.getRecords();
+    if(lsR.length > 0) state.records = lsR.map(function(r){ r.date = new Date(r.date); return r; });
+
     var html = '';
     if (screenName === 'Top') html = renderTop();
     else if (screenName === 'Terms') html = renderTerms();
@@ -113,6 +165,7 @@
     else if (screenName === 'Game') html = renderGame(rs);
     else if (screenName === 'Menu') html = renderMenu();
     else if (screenName === 'DeviceInfo') html = renderDeviceInfo();
+    else if (screenName === 'Messages') html = renderMessages(); // メッセージ画面描画
     else html = renderTop();
 
     app.innerHTML = html;
@@ -411,7 +464,6 @@
     var prevMonth = app.querySelector('#prev-month');
     var nextMonth = app.querySelector('#next-month');
     
-    // ▼不具合修正：0(1月)がfalseと判定されるバグを防ぐため、存在チェックのみを行う
     if (prevMonth) {
       prevMonth.addEventListener('click', function () { 
         if (typeof state.calendarMonth !== 'undefined') state.calendarMonth--;
@@ -460,6 +512,20 @@
       });
     }
 
+    // Chat
+    var chatSend = app.querySelector('#chat-send');
+    var chatInput = app.querySelector('#chat-input');
+    if (chatSend && chatInput) {
+      chatSend.addEventListener('click', function() {
+        if(chatInput.value.trim() !== '') {
+          addMessage(chatInput.value.trim());
+          render();
+          var area = document.getElementById('chat-area');
+          if(area) area.scrollTop = area.scrollHeight;
+        }
+      });
+    }
+
     // Placeholder alerts
     app.querySelectorAll('[data-alert]').forEach(function (el) {
       el.addEventListener('click', function () {
@@ -495,7 +561,9 @@
     helpCircle: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>',
     bell: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>',
     gamepad: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y="6" width="20" height="12" rx="2"/></svg>',
-    edit: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>'
+    edit: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>',
+    message: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+    send: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>'
   };
 
   var MONTHS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
@@ -840,6 +908,8 @@
         '</div>' +
       '</div>' +
       '<div class="menu-list">' +
+        // メッセージ画面への導線を追加
+        '<button type="button" class="menu-item" data-nav="messages"><div class="left"><div class="icon-wrap">' + icons.message + '</div><div><p class="label">メッセージ</p><p class="desc">医院とのチャット</p></div></div>' + icons.chevronRight + '</button>' +
         '<button type="button" class="menu-item" data-alert="アカウント設定画面は準備中です"><div class="left"><div class="icon-wrap">' + icons.user + '</div><div><p class="label">アカウント設定</p><p class="desc">プロフィール・ニックネーム変更</p></div></div>' + icons.chevronRight + '</button>' +
         '<button type="button" class="menu-item" data-nav="device-info"><div class="left"><div class="icon-wrap">' + icons.stethoscope + '</div><div><p class="label">使用装置について</p><p class="desc">装置の使い方・注意点</p></div></div>' + icons.chevronRight + '</button>' +
         '<button type="button" class="menu-item" data-alert="ヘルプ画面は準備中です"><div class="left"><div class="icon-wrap">' + icons.helpCircle + '</div><div><p class="label">ヘルプ</p><p class="desc">使い方・よくある質問</p></div></div>' + icons.chevronRight + '</button>' +
@@ -876,6 +946,24 @@
     '</div>';
   }
 
+  function renderMessages() {
+    var msgHtml = state.messages.map(function(m) {
+      return '<div class="chat-msg ' + m.sender + '"><div class="chat-bubble">' + m.text + '</div><div class="chat-time">' + m.time + '</div></div>';
+    }).join('');
+    
+    return '<div class="screen messages-screen">' +
+      '<header class="header">' +
+        '<button class="btn-icon" data-nav="menu">' + icons.arrowLeft + '</button>' +
+        '<h1>メッセージ</h1>' +
+      '</header>' +
+      '<div class="chat-area" id="chat-area">' + msgHtml + '</div>' +
+      '<div class="chat-input-area">' +
+        '<input type="text" id="chat-input" placeholder="メッセージを入力..."/>' +
+        '<button id="chat-send">' + icons.send + '</button>' +
+      '</div>' +
+    '</div>';
+  }
+
   function renderBottomNav(active) {
     var items = [
       { path: 'record-qr', icon: icons.qrCode, label: 'QR' },
@@ -891,7 +979,20 @@
     '</div></nav>';
   }
 
+  // 初期化と初回レンダリング
+  initData();
   window.addEventListener('hashchange', render);
   if (!window.location.hash) window.location.hash = '';
   render();
+
+  // 自動同期用ポーリング (デモ用)
+  setInterval(function() {
+    if(window.location.hash === '#messages' || window.location.hash === '#calendar') {
+      var oldMsgLen = state.messages.length;
+      state.messages = lsSync.getMessages();
+      if(state.messages.length !== oldMsgLen) {
+        render();
+      }
+    }
+  }, 2000);
 })();
