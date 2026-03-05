@@ -1,0 +1,201 @@
+/* Home */
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem;
+}
+
+.page-desc {
+  color: var(--muted);
+  font-size: 0.875rem;
+  margin: 0 0 1.5rem;
+}
+
+.date-badge {
+  font-size: 0.875rem;
+  color: var(--muted);
+  background: var(--card);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow);
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .home-grid {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.timeline-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-light);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.timeline-item:hover {
+  background: var(--muted-bg);
+}
+
+.timeline-item.new {
+  background: rgba(239, 246, 255, 0.3);
+}
+
+.timeline-item .icon-wrap {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--muted-bg);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.timeline-item .icon-wrap svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.timeline-item .body {
+  flex: 1;
+  min-width: 0;
+}
+
+.timeline-item .meta {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+}
+
+.timeline-item .new-badge {
+  display: inline-flex;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  background: var(--red-100);
+  color: var(--red);
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-left: 0.5rem;
+}
+
+.timeline-item .content {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--fg);
+}
+
+.timeline-item:hover .content {
+  color: var(--blue);
+}
+
+.timeline-item .arrow {
+  color: var(--border);
+  flex-shrink: 0;
+}
+
+.alert-section .section-label {
+  padding: 0.375rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-top: 1px solid;
+  border-bottom: 1px solid;
+}
+
+.alert-section .section-label.red {
+  background: var(--red-100);
+  color: var(--red);
+  border-color: var(--red-200, #fecaca);
+}
+
+.alert-section .section-label.orange {
+  background: var(--orange-100);
+  color: var(--orange-800);
+  border-color: #fed7aa;
+}
+
+.alert-section .section-label.yellow {
+  background: var(--yellow-100);
+  color: var(--yellow-800);
+  border-color: #fef08a;
+}
+
+.alert-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-bottom: 1px solid;
+}
+
+.alert-row.red { background: rgba(254, 242, 242, 0.3); border-color: var(--red-100); }
+.alert-row.red:hover { background: rgba(254, 226, 226, 0.5); }
+.alert-row.orange { background: rgba(255, 237, 213, 0.3); border-color: #ffedd5; }
+.alert-row.orange:hover { background: rgba(254, 215, 170, 0.5); }
+.alert-row.yellow { background: rgba(254, 249, 195, 0.3); border-color: #fef9c3; }
+.alert-row.yellow:hover { background: rgba(254, 240, 138, 0.5); }
+
+.alert-row .left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.alert-row .avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--red);
+  font-weight: 700;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid;
+  box-shadow: var(--shadow);
+}
+
+.alert-row.orange .avatar { color: var(--orange-800); border-color: #fed7aa; }
+.alert-row.yellow .avatar { color: #854d0e; border-color: #fef08a; }
+
+.alert-row .name {
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--fg);
+}
+
+.alert-row .last {
+  font-size: 0.75rem;
+  color: var(--red);
+  opacity: 0.8;
+}
+
+.alert-row.orange .last { color: var(--orange-800); }
+.alert-row.yellow .last { color: #854d0e; }
+
+.alert-row .days {
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.alert-row .days.red { background: #fecaca; color: var(--red); }
+.alert-row .days.orange { background: #fed7aa; color: var(--orange-800); }
+.alert-row .days.yellow { background: #fef08a; color: #854d0e; }
+

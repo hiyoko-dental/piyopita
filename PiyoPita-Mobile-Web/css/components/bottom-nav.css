@@ -1,0 +1,51 @@
+/* ボトムナビ */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid var(--border);
+  padding-bottom: var(--safe-bottom);
+  z-index: 50;
+  box-shadow: 0 -4px 6px -1px rgba(0,0,0,0.05);
+}
+
+.bottom-nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0.5rem 0;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  text-decoration: none;
+  transition: color 0.2s, background 0.2s;
+}
+
+.bottom-nav-item:hover {
+  color: var(--foreground);
+}
+
+.bottom-nav-item.active {
+  color: var(--primary);
+  background: var(--pastel-yellow);
+}
+
+.bottom-nav-item svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-bottom: 0.25rem;
+}

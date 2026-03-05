@@ -1,0 +1,282 @@
+/* Messages */
+.messages-layout {
+  height: calc(100vh - 8rem);
+  display: flex;
+  gap: 1.5rem;
+}
+
+.contacts-panel {
+  width: 20rem;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.contacts-panel .search-wrap {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.contacts-panel .search-wrap input {
+  width: 100%;
+  height: 2.5rem;
+  padding: 0 0.75rem 0 2.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  background: var(--muted-bg);
+}
+
+.contacts-panel .search-wrap {
+  position: relative;
+}
+
+.contacts-panel .search-wrap .icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
+  color: var(--muted);
+}
+
+.contact-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-light);
+  cursor: pointer;
+  transition: background 0.2s;
+  text-align: left;
+  width: 100%;
+  background: none;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  font-family: inherit;
+}
+
+.contact-item:hover {
+  background: var(--muted-bg);
+}
+
+.contact-item.active {
+  background: rgba(239, 246, 255, 0.5);
+}
+
+.contact-item .avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--muted-bg);
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.contact-item .avatar .unread {
+  position: absolute;
+  top: -0.25rem;
+  right: -0.25rem;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.25rem;
+  background: var(--red);
+  color: white;
+  font-size: 0.625rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--card);
+}
+
+.contact-item .body {
+  flex: 1;
+  min-width: 0;
+}
+
+.contact-item .name {
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--fg);
+  margin-bottom: 0.25rem;
+}
+
+.contact-item .preview {
+  font-size: 0.75rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.contact-item .time {
+  font-size: 0.75rem;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.chat-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.chat-header {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card);
+}
+
+.chat-header .user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.chat-header .user-info .name {
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.chat-header .actions {
+  display: flex;
+  gap: 0.5rem;
+  color: var(--muted);
+}
+
+.chat-header .actions button {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+  background: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-header .actions button:hover {
+  background: var(--blue-50);
+  color: var(--blue);
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  background: rgba(248, 250, 252, 0.5);
+}
+
+.chat-msg {
+  display: flex;
+  flex-direction: column;
+  max-width: 80%;
+  margin-bottom: 1rem;
+}
+
+.chat-msg.doctor {
+  margin-left: auto;
+  align-items: flex-end;
+}
+
+.chat-msg.patient {
+  margin-right: auto;
+  align-items: flex-start;
+}
+
+.chat-msg .bubble {
+  padding: 1rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  box-shadow: var(--shadow);
+}
+
+.chat-msg .bubble.doctor {
+  background: var(--blue);
+  color: white;
+  border-bottom-right-radius: 0;
+}
+
+.chat-msg .bubble.patient {
+  background: var(--card);
+  color: var(--fg);
+  border: 1px solid var(--border-light);
+  border-bottom-left-radius: 0;
+}
+
+.chat-msg .time {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 0.25rem;
+}
+
+.chat-input-wrap {
+  padding: 1rem;
+  border-top: 1px solid var(--border-light);
+  background: var(--card);
+}
+
+.chat-input-wrap .row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chat-input-wrap input {
+  flex: 1;
+  height: 2.5rem;
+  padding: 0 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  background: var(--muted-bg);
+}
+
+.chat-input-wrap input:focus {
+  outline: none;
+  border-color: var(--blue);
+  background: var(--card);
+}
+
+.chat-input-wrap .btn-send {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--blue);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-input-wrap .btn-send:hover {
+  background: #1d4ed8;
+}
+
