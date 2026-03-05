@@ -1,27 +1,21 @@
+/**
+ * ぴよぴた PC - 小児歯科矯正患者管理システム
+ * 共通: lib/storage.js でモバイルアプリと記録・メッセージを同期
+ */
+import { lsSync } from './lib/storage.js';
+import { renderLogin as renderLoginScreen } from './screens/Login.js';
+import { renderDashboard as renderDashboardLayout } from './screens/Dashboard.js';
+import { renderHome as renderHomeScreen } from './screens/Home.js';
+import { renderPatientSearch as renderPatientSearchScreen } from './screens/PatientSearch.js';
+import { renderPatientDetail as renderPatientDetailScreen } from './screens/PatientDetail.js';
+import { renderMessages as renderMessagesScreen } from './screens/Messages.js';
+import { renderSettings as renderSettingsScreen } from './screens/Settings.js';
+
 (function () {
   'use strict';
 
   // 認証状態をメモリ上で管理する（ページを開くたびに初期化されるため、必ずログイン画面から始まります）
   var isAuth = false;
-
-  // --- LocalStorage Sync for Mobile & PC ---
-  var lsSync = {
-    getRecords: function() {
-      return JSON.parse(localStorage.getItem('piyopita_records') || '[]');
-    },
-    getMessages: function() {
-      var msgs = localStorage.getItem('piyopita_messages');
-      if (!msgs) {
-        msgs = [{ id: 1, sender: 'doctor', text: 'こんにちは。装置の調子はいかがですか？', time: '14:00' }];
-        localStorage.setItem('piyopita_messages', JSON.stringify(msgs));
-        return msgs;
-      }
-      return JSON.parse(msgs);
-    },
-    saveMessages: function(msgs) {
-      localStorage.setItem('piyopita_messages', JSON.stringify(msgs));
-    }
-  };
 
   // モック用の簡易通知関数
   window.showMockToast = function(msg) {
@@ -146,6 +140,7 @@
     user: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
     lock: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
     mapPin: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>',
+    phone: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
     mail: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>',
     shield: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
     plus: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
@@ -718,7 +713,7 @@
         navigateTo('login');
         return;
       }
-      app.innerHTML = renderLogin();
+      app.innerHTML = renderLoginScreen();
       var form = app.querySelector('#login-form');
       if (form) {
         form.addEventListener('submit', function (e) {
@@ -758,21 +753,32 @@
 
     var content = '';
     if (seg.base === '/' || seg.base === '') {
-      content = renderHome();
+      content = renderHomeScreen();
     } else if (seg.base === '/patients/:id' && seg.id) {
-      content = renderPatientDetail(seg.id);
+      content = renderPatientDetailScreen(seg.id, {
+        detailYear: state.detailYear,
+        detailMonth: state.detailMonth,
+        photoModalDate: state.photoModalDate,
+        photoModalTime: state.photoModalTime,
+        photoModalStatus: state.photoModalStatus
+      });
     } else if (seg.base === '/patients') {
-      content = renderPatientSearch(state.searchTerm, state.deviceFilter);
+      content = renderPatientSearchScreen(state.searchTerm, state.deviceFilter);
     } else if (seg.base === '/messages') {
-      content = renderMessages();
+      content = renderMessagesScreen({
+        contacts: mockContacts,
+        selectedContactId: state.selectedContact ? state.selectedContact.id : (mockContacts[0] && mockContacts[0].id),
+        messages: state.messages,
+        messageInput: state.messageInput
+      });
     } else if (seg.base === '/settings') {
-      content = renderSettings(state.settingsTab || 'clinic');
+      content = renderSettingsScreen(state.settingsTab || 'clinic', state.staffList);
     } else {
-      content = renderHome();
+      content = renderHomeScreen();
     }
 
     // DOMの書き換え
-    app.innerHTML = renderDashboard(content, seg.base);
+    app.innerHTML = renderDashboardLayout(content, seg.base);
 
     // 再描画後にスクロール位置を復元する
     if (isSamePage) {

@@ -1,0 +1,109 @@
+/* Record Confirm 画面 */
+.confirm-content {
+  flex: 1;
+  padding: 1.5rem;
+}
+
+.preview-box {
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+  border-radius: var(--radius-lg);
+  aspect-ratio: 16/10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  color: var(--muted-foreground);
+}
+
+.preview-box svg {
+  width: 4rem;
+  height: 4rem;
+}
+
+.eval-card .label {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.eval-card .value {
+  margin-bottom: 0;
+}
+
+.eval-card .value-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.eval-card .value-row .dot {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+}
+
+.eval-card .value-row .icon-emoji {
+  font-size: 1.5rem;
+  margin-right: 0.5rem;
+}
+
+.eval-card .value-row .text {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.time-edit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.time-edit-row .link {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family);
+}
+
+.time-edit-row .link:hover {
+  color: var(--bright-orange);
+}
+
+.time-edit-row .link svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.confirm-actions {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border);
+  background: white;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.peeled-note {
+  background: rgba(76, 175, 80, 0.1);
+  border: 2px solid var(--eval-peeled);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  margin-top: 1rem;
+}
+
+.peeled-note p {
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.peeled-note strong {
+  color: var(--eval-peeled);
+}

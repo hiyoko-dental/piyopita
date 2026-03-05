@@ -1,0 +1,60 @@
+/* QR Modal */
+.qr-modal-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.qr-modal-body .qr-placeholder {
+  width: 12rem;
+  height: 12rem;
+  background: #1e293b;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  padding: 1rem;
+  border: 2px solid var(--border-light);
+}
+
+.qr-modal-body .qr-placeholder svg {
+  width: 4rem;
+  height: 4rem;
+}
+
+.qr-modal-body p {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.qr-modal-body .btn-download {
+  width: 100%;
+  height: 2.5rem;
+  background: var(--blue);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.qr-modal-body .btn-download:hover {
+  background: #1d4ed8;
+}
+
+/* --- 追加: 患者側と統一したカレンダーの色 --- */
+.day-dot.good { background: #4A90E2; }
+.day-dot.normal { background: #FFD700; }
+.day-dot.bad { background: #FF6B6B; }
+.day-dot.peeled { background: #4CAF50; }
+
+.dot.good { background: #4A90E2; }
+.dot.normal { background: #FFD700; }
+.dot.bad { background: #FF6B6B; }
+.dot.peeled { background: #4CAF50; }

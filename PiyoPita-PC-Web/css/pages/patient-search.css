@@ -1,0 +1,185 @@
+/* Patient Search & Table Unification */
+.search-card .form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto auto;
+  gap: 1rem;
+  align-items: end;
+}
+
+@media (max-width: 768px) {
+  .search-card .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.search-card .form-group {
+  margin-bottom: 0;
+}
+
+.search-card .form-group label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--fg);
+}
+
+.search-card input,
+.search-card select {
+  width: 100%;
+  height: 2.5rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+}
+
+.search-card .search-wrap {
+  position: relative;
+}
+
+.search-card .search-wrap svg {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--muted);
+}
+
+.search-card .search-wrap input {
+  padding-left: 2.5rem;
+}
+
+/* 統一テーブルクラス */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  text-align: left;
+}
+
+.data-table thead th {
+  background: var(--muted-bg);
+  padding: 1rem;
+  font-weight: 600;
+  color: var(--fg);
+  border-bottom: 1px solid var(--border);
+}
+
+.data-table tbody td {
+  padding: 1rem;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.data-table tbody tr.interactive {
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.data-table tbody tr.interactive:hover {
+  background: rgba(239, 246, 255, 0.5);
+}
+
+.data-table .chart-no {
+  font-family: monospace;
+  color: var(--muted);
+}
+
+.data-table .patient-name {
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.data-table .patient-kana {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.data-table .device-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius);
+  background: var(--muted-bg);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.data-table .status-badge {
+  display: inline-flex;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.data-table .badge {
+  display: inline-flex;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.data-table .badge.active {
+  background: var(--green-50);
+  color: var(--green);
+}
+
+.data-table .badge.inactive {
+  background: var(--muted-bg);
+  color: var(--muted);
+}
+
+.data-table .actions {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: flex-end;
+}
+
+.data-table .actions button {
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.data-table .actions button:hover {
+  background: var(--blue-50);
+  color: var(--blue);
+}
+
+.data-table .actions button.danger:hover {
+  background: var(--red-50);
+  color: var(--red);
+}
+
+.status-badge.good { background: var(--green-50); color: var(--green); border: 1px solid rgba(22, 163, 74, 0.2); }
+.status-badge.warning { background: #fef9c3; color: #854d0e; border: 1px solid #fef08a; }
+.status-badge.danger { background: var(--red-50); color: var(--red); border: 1px solid rgba(220, 38, 38, 0.1); }
+.status-badge.info { background: var(--blue-50); color: var(--blue); border: 1px solid rgba(37, 99, 235, 0.1); }
+
+.empty-state {
+  padding: 3rem;
+  text-align: center;
+  color: var(--muted);
+}
+
+.empty-state svg {
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.2;
+}
+
