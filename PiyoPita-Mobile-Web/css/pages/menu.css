@@ -1,0 +1,119 @@
+/* Menu 画面 */
+.menu-screen {
+  padding-bottom: 6rem;
+}
+
+.menu-header {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, var(--pastel-yellow), var(--pastel-orange));
+}
+
+.menu-header .profile {
+  display: flex;
+  align-items: center;
+}
+
+.menu-header .avatar {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: var(--bright-yellow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+}
+
+.menu-header .avatar svg {
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--bright-orange);
+}
+
+.menu-header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem;
+}
+
+.menu-header p {
+  font-size: 0.875rem;
+  color: rgba(51,51,51,0.7);
+  margin: 0;
+}
+
+.menu-list {
+  padding: 1.5rem;
+}
+
+.menu-item:active {
+  transform: scale(0.99);
+}
+
+.menu-item:hover {
+  background: var(--secondary);
+}
+
+.menu-item .left {
+  display: flex;
+  align-items: center;
+}
+
+.menu-item .icon-wrap {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  background: var(--pastel-yellow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+}
+
+.menu-item .icon-wrap svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--primary);
+}
+
+.menu-item .label {
+  font-weight: 500;
+  margin: 0;
+}
+
+.menu-item .desc {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.menu-item .arrow {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--muted-foreground);
+}
+
+.menu-item.logout .icon-wrap {
+  background: rgba(255,107,107,0.1);
+}
+
+.menu-item.logout .icon-wrap svg {
+  color: var(--destructive);
+}
+
+.menu-item.logout .label {
+  color: var(--destructive);
+}
+
+.menu-item.logout {
+  border-color: rgba(255,107,107,0.3);
+  margin-top: 1.5rem;
+}
+
+.menu-footer {
+  padding: 1rem 1.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}

@@ -1,0 +1,28 @@
+/* ぴよぴた モバイル - テーマ変数 */
+:root {
+  --font-family: 'M PLUS Rounded 1c', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-size: 16px;
+  --pastel-yellow: #FFF8DC;
+  --bright-yellow: #FFD700;
+  --pastel-orange: #FFB347;
+  --bright-orange: #FF8C42;
+  --eval-good: #4A90E2;
+  --eval-normal: #FFD700;
+  --eval-bad: #FF6B6B;
+  --eval-peeled: #4CAF50;
+  --background: #FFFBF0;
+  --foreground: #333333;
+  --card: #ffffff;
+  --primary: #FF8C42;
+  --primary-foreground: #ffffff;
+  --secondary: #FFF8DC;
+  --muted: #FFF0D9;
+  --muted-foreground: #666666;
+  --destructive: #FF6B6B;
+  --border: rgba(255, 140, 66, 0.2);
+  --input-background: #ffffff;
+  --radius: 1rem;
+  --radius-lg: 1.5rem;
+  --safe-top: env(safe-area-inset-top, 0);
+  --safe-bottom: env(safe-area-inset-bottom, 0);
+}
